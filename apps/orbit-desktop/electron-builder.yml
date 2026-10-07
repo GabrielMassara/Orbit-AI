@@ -1,0 +1,24 @@
+appId: ai.orbit.desktop
+productName: Orbit AI
+directories:
+  buildResources: build
+  output: release
+files:
+  - out
+  - resources
+asarUnpack:
+  - resources/**
+win:
+  icon: build/icon.ico
+  target: nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+mac:
+  target: dmg
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Utility
+npmRebuild: false
