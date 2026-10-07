@@ -1,0 +1,38 @@
+# Dependências
+node_modules
+
+# Build e empacotamento
+out
+dist
+release
+
+# Testes
+coverage
+
+# Caches de ferramentas
+.eslintcache
+*.tsbuildinfo
+.vite
+
+# Logs
+*.log
+npm-debug.log*
+
+.env
+.env.*
+!.env.example
+
+*.pfx
+*.p12
+*.pem
+*.key
+
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
