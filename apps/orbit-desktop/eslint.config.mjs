@@ -6,5 +6,6 @@ export default defineConfigWithVueTs(
   { ignores: ['**/node_modules', '**/out', '**/release'] },
   eslintPluginVue.configs['flat/recommended'],
   vueTsConfigs.recommended,
+  { rules: { 'vue/require-default-prop': 'off' } },
   skipFormatting
 )
