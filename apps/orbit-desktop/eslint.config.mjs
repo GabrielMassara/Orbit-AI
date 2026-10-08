@@ -7,5 +7,12 @@ export default defineConfigWithVueTs(
   eslintPluginVue.configs['flat/recommended'],
   vueTsConfigs.recommended,
   { rules: { 'vue/require-default-prop': 'off' } },
-  skipFormatting
+  skipFormatting,
+  {
+    files: ['src/main/agentcore/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }]
+    }
+  }
 )

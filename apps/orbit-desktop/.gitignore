@@ -6,6 +6,10 @@ out
 dist
 release
 
+# AgentCore: dados locais e anexos que ele grava em runtime
+data
+.agentcore-uploads
+
 # Testes
 coverage
 

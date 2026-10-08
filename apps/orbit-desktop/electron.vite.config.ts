@@ -4,7 +4,15 @@ import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'src/main/index.ts'),
+          agentcore: resolve(__dirname, 'src/main/agentcore/server.ts')
+        }
+      }
+    }
   },
   renderer: {
     plugins: [vue()],
