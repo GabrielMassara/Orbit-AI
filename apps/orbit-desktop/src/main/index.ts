@@ -1,6 +1,7 @@
 import { once } from 'node:events'
 import { setTimeout as delay } from 'node:timers/promises'
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, dialog } from 'electron'
+import { startAgentCore, stopAgentCore } from './agentcore-launcher'
 import { createMainWindow, createSplashWindow } from './window'
 
 const SPLASH_MIN_MS = 1500
@@ -9,23 +10,50 @@ async function start(): Promise<void> {
   const splash = createSplashWindow()
   const main = createMainWindow()
 
-  await Promise.all([once(main, 'ready-to-show'), delay(SPLASH_MIN_MS)])
+  try {
+    await Promise.all([once(main, 'ready-to-show'), delay(SPLASH_MIN_MS), startAgentCore()])
+  } catch (error) {
+    splash.close()
+    dialog.showErrorBox('Orbit AI', `Não foi possível iniciar o AgentCore.\n\n${String(error)}`)
+    app.quit()
+    return
+  }
 
   splash.close()
   main.show()
 }
 
-void app.whenReady().then(() => {
-  void start()
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      const win = createMainWindow()
-      win.once('ready-to-show', () => win.show())
+if (!app.requestSingleInstanceLock()) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    const win = BrowserWindow.getAllWindows().find((w) => w.isVisible())
+    if (win) {
+      if (win.isMinimized()) win.restore()
+      win.focus()
     }
   })
-})
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
-})
+  void app.whenReady().then(() => {
+    void start()
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        const win = createMainWindow()
+        win.once('ready-to-show', () => win.show())
+      }
+    })
+  })
+
+  let quitting = false
+  app.on('before-quit', (event) => {
+    if (quitting) return
+    event.preventDefault()
+    quitting = true
+    void stopAgentCore().finally(() => app.quit())
+  })
+
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') app.quit()
+  })
+}
