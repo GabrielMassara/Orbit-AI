@@ -6,8 +6,7 @@ directories:
 files:
   - out
   - resources
-asarUnpack:
-  - resources/**
+asar: false
 win:
   icon: build/icon.ico
   target: nsis
