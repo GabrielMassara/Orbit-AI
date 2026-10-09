@@ -35,6 +35,7 @@ import {
   ClaudeEffortLevel
 } from '../sessions/session'
 import { getCachedClaudeTools } from '../sessions/claude-tools-cache'
+import { isOriginAllowed } from '../config/cors'
 
 type CreateSessionBody = {
   runtime: 'claude' | 'codex' | 'opencode'
@@ -226,9 +227,6 @@ type RewindFilesBody = {
   userMessageId: string
   dryRun?: boolean
 }
-
-// Mesma regra do server.ts em que o CORS é liberado só em desenvolvimento.
-const isDev = process.env.NODE_ENV !== 'production'
 
 // Instância única de cada runtime, compartilhada por todas as requisições.
 // O controle de qual sessão está rodando fica dentro do próprio runtime.
@@ -711,7 +709,7 @@ export default async function sessionRoutes(app: FastifyInstance) {
 
       const origin = request.headers.origin
 
-      if (isDev && origin) {
+      if (isOriginAllowed(origin)) {
         sseHeaders['Access-Control-Allow-Origin'] = origin
         sseHeaders['Vary'] = 'Origin'
       }

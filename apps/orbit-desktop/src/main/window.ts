@@ -1,15 +1,18 @@
 import { join } from 'node:path'
 import { BrowserWindow } from 'electron'
+import { APP_ORIGIN } from './protocol'
 import icon from '../../resources/icon.png?asset'
 
 const BACKGROUND_COLOR = '#f5f9fd'
+
+const preload = join(__dirname, '../preload/index.js')
 
 function loadPage(win: BrowserWindow, page: 'index' | 'splash'): void {
   const devUrl = process.env['ELECTRON_RENDERER_URL']
   if (devUrl) {
     void win.loadURL(`${devUrl}/${page}.html`)
   } else {
-    void win.loadFile(join(__dirname, `../renderer/${page}.html`))
+    void win.loadURL(`${APP_ORIGIN}/${page}.html`)
   }
 }
 
@@ -22,7 +25,8 @@ export function createMainWindow(): BrowserWindow {
     show: false,
     autoHideMenuBar: true,
     backgroundColor: BACKGROUND_COLOR,
-    icon
+    icon,
+    webPreferences: { preload }
   })
 
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))

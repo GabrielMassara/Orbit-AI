@@ -3,17 +3,14 @@ import cors from '@fastify/cors'
 import healthRoutes from './routes/health'
 import sessionRoutes from './routes/sessions.routes'
 import configRoutes from './routes/config.routes'
+import { corsEnabled, isOriginAllowed } from './config/cors'
 import { closeOpenCodeServer } from './runtimes/opencode/opencode.runtime'
 
 const server = Fastify({ logger: true })
 
-// CORS liberado em desenvolvimento
-// Em produção (NODE_ENV=production) isso fica desligado por completo.
-const isDev = process.env.NODE_ENV !== 'production'
-
-if (isDev) {
+if (corsEnabled) {
   server.register(cors, {
-    origin: true,
+    origin: (origin, callback) => callback(null, !origin || isOriginAllowed(origin)),
     methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE', 'PUT']
   })
 }
