@@ -1,10 +1,14 @@
 import { once } from 'node:events'
 import { setTimeout as delay } from 'node:timers/promises'
-import { app, BrowserWindow, dialog } from 'electron'
-import { startAgentCore, stopAgentCore } from './agentcore-launcher'
+import { app, BrowserWindow, dialog, ipcMain } from 'electron'
+import { startAgentCore, stopAgentCore, whenAgentCoreReady } from './agentcore-launcher'
+import { handleAppScheme, registerAppScheme } from './protocol'
 import { createMainWindow, createSplashWindow } from './window'
 
 const SPLASH_MIN_MS = 1500
+
+// Tem que ser registrado antes de o app ficar pronto.
+registerAppScheme()
 
 async function start(): Promise<void> {
   const splash = createSplashWindow()
@@ -35,6 +39,10 @@ if (!app.requestSingleInstanceLock()) {
   })
 
   void app.whenReady().then(() => {
+    handleAppScheme()
+    ipcMain.handle('orbit:get-api-base-url', () => whenAgentCoreReady())
+    ipcMain.handle('orbit:get-default-project-path', () => app.getPath('home'))
+
     void start()
 
     app.on('activate', () => {

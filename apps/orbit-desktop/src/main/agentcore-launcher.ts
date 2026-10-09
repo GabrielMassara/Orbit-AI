@@ -3,12 +3,23 @@ import { createServer } from 'node:net'
 import { join } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { app, utilityProcess, type UtilityProcess } from 'electron'
+import { APP_ORIGIN } from './protocol'
 
 const HEALTH_TIMEOUT_MS = 30_000
 const SHUTDOWN_TIMEOUT_MS = 5_000
 
+const RENDERER_ORIGINS = [APP_ORIGIN]
+
 let child: UtilityProcess | null = null
 let baseUrl: string | null = null
+
+let resolveReady!: (url: string) => void
+let rejectReady!: (reason: unknown) => void
+const ready = new Promise<string>((resolve, reject) => {
+  resolveReady = resolve
+  rejectReady = reject
+})
+ready.catch(() => {})
 
 function freePort(): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -37,6 +48,10 @@ export function getAgentCoreUrl(): string | null {
   return baseUrl
 }
 
+export function whenAgentCoreReady(): Promise<string> {
+  return ready
+}
+
 export async function startAgentCore(): Promise<void> {
   const port = await freePort()
   const url = `http://127.0.0.1:${port}`
@@ -51,6 +66,7 @@ export async function startAgentCore(): Promise<void> {
       ...process.env,
       AGENTCORE_PORT: String(port),
       AGENTCORE_DATA_DIR: dataDir,
+      AGENTCORE_CORS_ORIGINS: RENDERER_ORIGINS.join(','),
       NODE_ENV: app.isPackaged ? 'production' : 'development'
     }
   })
@@ -71,8 +87,14 @@ export async function startAgentCore(): Promise<void> {
   })
   exited.catch(() => {})
 
-  await waitForHealth(url, exited)
+  try {
+    await waitForHealth(url, exited)
+  } catch (error) {
+    rejectReady(error)
+    throw error
+  }
   baseUrl = url
+  resolveReady(url)
 }
 
 export async function stopAgentCore(): Promise<void> {

@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
+import { init } from './state/init'
 import ChatInput from './components/chat/ChatInput.vue'
 import ChatMessages from './components/chat/ChatMessages.vue'
 import AppSidebar from './components/sidebar/AppSidebar.vue'
 import AppTopbar from './components/topbar/AppTopbar.vue'
+
+onMounted(() => void init())
 </script>
 
 <template>
