@@ -34,8 +34,13 @@ defineProps<{
   transition: background 0.15s ease;
 }
 
-.menu-item:hover {
+.menu-item:hover:not(:disabled) {
   background: var(--surface-hover);
+}
+
+.menu-item:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .menu-item__content {
@@ -67,7 +72,7 @@ defineProps<{
   color: var(--danger-text);
 }
 
-.menu-item--danger:hover {
+.menu-item--danger:hover:not(:disabled) {
   background: var(--danger-surface);
 }
 </style>

@@ -6,9 +6,10 @@ import {
   getSessionHistory,
   listSessions,
   renameSessionApi,
+  setModelApi,
   tagSessionApi
 } from '../api/agentcore'
-import type { AgentSession } from '../api/types'
+import type { AgentSession, RuntimeName } from '../api/types'
 import { appState, setSendingState, syncStateFromSession } from './app-state'
 import {
   appendSystemMessage,
@@ -71,30 +72,43 @@ export async function loadSessionHistory(sessionId: string): Promise<void> {
   }
 }
 
-export async function newChat(): Promise<void> {
+export async function startSession(
+  runtime: RuntimeName,
+  model = ''
+): Promise<AgentSession | null> {
   const current = appState.session
-  if (!current) return
+  if (!current) return null
 
   const token = ++transitionToken
 
-  let session: AgentSession
-  try {
-    session = await createSession(current.projectPath, current.runtime)
-  } catch (error) {
-    showToast({
-      title: 'Não foi possível criar uma nova conversa',
-      message: errorMessage(error, 'Falha ao criar a sessão.'),
-      variant: 'error'
-    })
-    return
+  const session = await createSession(current.projectPath, runtime)
+  if (model) {
+    await setModelApi(session.id, model)
+    session.model = model
   }
-  if (token !== transitionToken) return
+  if (token !== transitionToken) return null
 
   activateSession(session)
   clearMessages()
   await connectEvents(session.id)
   void loadRecentSessions()
   closeSidebarOnMobile()
+  return session
+}
+
+export async function newChat(): Promise<void> {
+  const current = appState.session
+  if (!current) return
+
+  try {
+    await startSession(current.runtime)
+  } catch (error) {
+    showToast({
+      title: 'Não foi possível criar uma nova conversa',
+      message: errorMessage(error, 'Falha ao criar a sessão.'),
+      variant: 'error'
+    })
+  }
 }
 
 export async function switchSession(sessionId: string): Promise<void> {
