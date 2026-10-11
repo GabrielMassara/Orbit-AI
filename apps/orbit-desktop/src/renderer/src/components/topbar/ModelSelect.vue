@@ -1,49 +1,82 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { appState } from '../../state/app-state'
+import {
+  closeModelMenu,
+  DEFAULT_MODEL_LABEL,
+  handleModelSelect,
+  modelDisplayName,
+  modelMenuBusy,
+  modelMenuOpen,
+  providerLabel,
+  toggleModelMenu
+} from '../../state/models'
 import AppIcon from '../icons/AppIcon'
-import ProviderIcon, { type Runtime } from '../icons/ProviderIcon.vue'
+import ProviderIcon from '../icons/ProviderIcon.vue'
 import MenuItem from '../ui/MenuItem.vue'
 import MenuPanel from '../ui/MenuPanel.vue'
 
-defineProps<{ menuOpen?: boolean }>()
+const root = ref<HTMLElement | null>(null)
 
-const agents: { runtime: Runtime; label: string; models: { id: string; label: string }[] }[] = [
-  { runtime: 'claude', label: 'Claude', models: [{ id: '', label: 'Padrão do CLI' }] },
-  { runtime: 'codex', label: 'Codex', models: [{ id: '', label: 'Padrão do CLI' }] },
-  { runtime: 'opencode', label: 'OpenCode', models: [{ id: '', label: 'Padrão do CLI' }] }
-]
+function onDocumentClick(event: MouseEvent): void {
+  if (!root.value?.contains(event.target as Node)) closeModelMenu()
+}
+
+function onEscape(event: KeyboardEvent): void {
+  if (event.key === 'Escape') closeModelMenu()
+}
+
+onMounted(() => {
+  document.addEventListener('click', onDocumentClick)
+  document.addEventListener('keydown', onEscape)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onDocumentClick)
+  document.removeEventListener('keydown', onEscape)
+})
 </script>
 
 <template>
-  <div class="model-select">
+  <div ref="root" class="model-select">
     <button
       type="button"
       class="model-select__button"
       aria-label="Provedor e modelo"
       title="Provedor e modelo"
+      aria-haspopup="menu"
+      :aria-expanded="modelMenuOpen"
+      :disabled="!appState.session || modelMenuBusy"
+      @click="toggleModelMenu"
     >
-      <ProviderIcon runtime="claude" :size="15" />
-      <span class="model-select__label">Modelo</span>
+      <ProviderIcon :runtime="appState.currentRuntime" :size="16" />
+      <span class="model-select__label">
+        {{ modelDisplayName(appState.currentRuntime, appState.currentModel) }}
+      </span>
       <AppIcon name="chevron-down" :size="14" :stroke-width="2" class="model-select__chevron" />
     </button>
 
     <MenuPanel
-      :open="menuOpen"
+      :open="modelMenuOpen"
       placement="bottom-start"
       :min-width="230"
       class="model-select__menu"
     >
-      <template v-for="agent in agents" :key="agent.runtime">
+      <template v-for="agent in appState.availableAgents" :key="agent.runtime">
         <div class="model-select__section">
           <ProviderIcon :runtime="agent.runtime" variant="brand" :size="14" />
-          <span>{{ agent.label }}</span>
+          <span>{{ providerLabel(agent.runtime) }}</span>
         </div>
         <MenuItem
-          v-for="model in agent.models"
+          v-for="model in [{ id: '', displayName: DEFAULT_MODEL_LABEL }, ...agent.models]"
           :key="model.id"
-          :active="agent.runtime === 'claude'"
+          :active="agent.runtime === appState.currentRuntime && model.id === appState.currentModel"
+          :disabled="modelMenuBusy"
+          :title="'description' in model ? model.description : undefined"
+          @click="handleModelSelect(agent.runtime, model.id)"
         >
           <ProviderIcon :runtime="agent.runtime" :size="15" />
-          <span>{{ model.label }}</span>
+          <span>{{ model.displayName }}</span>
         </MenuItem>
       </template>
     </MenuPanel>
@@ -76,8 +109,13 @@ const agents: { runtime: Runtime; label: string; models: { id: string; label: st
     background 0.15s ease;
 }
 
-.model-select__button:hover {
+.model-select__button:hover:not(:disabled) {
   box-shadow: 0 4px 10px rgba(20, 23, 31, 0.12);
+}
+
+.model-select__button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .model-select__label {
