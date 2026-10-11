@@ -65,7 +65,9 @@ export const icons = {
     path('M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z'),
     path('M14.5 12.5l3-3 2 2-3 3H14.5v-2z')
   ],
-  'lock-open': [rect(5, 11, 14, 9, 2), path('M8 11V7a4 4 0 017.75-1.5')]
+  'lock-open': [rect(5, 11, 14, 9, 2), path('M8 11V7a4 4 0 017.75-1.5')],
+  'alert-circle': [circle(12, 12, 9), path('M12 8v5M12 16h.01')],
+  close: [path('M18 6L6 18M6 6l12 12')]
 } satisfies Record<string, Shape[]>
 
 export type IconName = keyof typeof icons
