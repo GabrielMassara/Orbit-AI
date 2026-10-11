@@ -1,4 +1,4 @@
-import { request, requestOr } from './client'
+import { apiUrl, request, requestOr } from './client'
 import type {
   AgentEvent,
   AgentSession,
@@ -43,6 +43,25 @@ export async function listSessions(limit = 20): Promise<AgentSession[]> {
 export async function getSessionForks(sessionId: string): Promise<AgentSession[]> {
   const all = await listSessions(200)
   return all.filter((s) => s.forkedFrom === sessionId)
+}
+
+export function sendMessageApi(sessionId: string, content: string) {
+  return request<{ accepted: boolean }>(`${sessionPath(sessionId)}/messages`, {
+    method: 'POST',
+    body: { content },
+    failureMessage: 'Erro ao enviar mensagem'
+  })
+}
+
+export function cancelSessionApi(sessionId: string) {
+  return request<{ cancelled: boolean }>(`${sessionPath(sessionId)}/cancel`, {
+    method: 'POST',
+    failureMessage: 'Erro ao cancelar'
+  })
+}
+
+export async function openEventStream(sessionId: string): Promise<EventSource> {
+  return new EventSource(await apiUrl(`${sessionPath(sessionId)}/events`))
 }
 
 export function deleteSessionApi(sessionId: string) {

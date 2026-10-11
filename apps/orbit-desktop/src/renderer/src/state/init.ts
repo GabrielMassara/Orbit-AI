@@ -1,5 +1,7 @@
 import { createSession, getSession, loadAvailableAgents } from '../api/agentcore'
-import { appState, syncStateFromSession } from './app-state'
+import { appState, setSendingState, syncStateFromSession } from './app-state'
+import { clearMessages } from './chat'
+import { connectEvents } from './events'
 import { loadStoredSessionRef, saveState } from './persistence'
 
 async function refreshAvailableAgents(): Promise<void> {
@@ -26,6 +28,9 @@ export async function init(): Promise<void> {
     appState.session = session
     syncStateFromSession(session)
     saveState(session)
+    clearMessages()
+    setSendingState(session.status === 'running' || session.status === 'waiting_permission')
+    await connectEvents(session.id)
   } catch (error) {
     appState.initError =
       error instanceof Error ? error.message : 'Não foi possível iniciar a sessão.'

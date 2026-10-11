@@ -4,7 +4,8 @@ import type {
   AvailableAgent,
   CodexSandboxMode,
   PermissionMode,
-  RuntimeName
+  RuntimeName,
+  SessionStatus
 } from '../api/types'
 
 interface AppState {
@@ -28,6 +29,23 @@ export const appState = reactive<AppState>({
   isSending: false,
   initError: null
 })
+
+export const STATUS_LABELS: Record<SessionStatus, string> = {
+  ready: 'Pronto',
+  running: 'Rodando',
+  waiting_permission: 'Aguardando permissão',
+  completed: 'Concluído',
+  cancelled: 'Cancelado',
+  error: 'Erro'
+}
+
+export function setSessionStatus(status: SessionStatus): void {
+  if (appState.session) appState.session.status = status
+}
+
+export function setSendingState(isRunning: boolean): void {
+  appState.isSending = isRunning
+}
 
 export function syncStateFromSession(session: AgentSession | null): void {
   appState.currentPermissionMode = session?.permissionMode ?? 'default'
