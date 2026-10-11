@@ -1,9 +1,39 @@
 <script setup lang="ts">
+import { nextTick, ref, watch } from 'vue'
+import { appState } from '../../state/app-state'
+import { cancelCurrentExecution, sendMessage } from '../../state/send'
 import AppIcon from '../icons/AppIcon'
 import IconButton from '../ui/IconButton.vue'
 import PermissionModeSelect from './PermissionModeSelect.vue'
 
-defineProps<{ running?: boolean }>()
+const text = ref('')
+const field = ref<HTMLInputElement | null>(null)
+
+function submit(): void {
+  const content = text.value.trim()
+  if (!content || appState.isSending || !appState.session) return
+  text.value = ''
+  void sendMessage(content)
+}
+
+function onEnter(event: KeyboardEvent): void {
+  if (event.isComposing) return
+  submit()
+}
+
+function onSendClick(): void {
+  if (appState.isSending) void cancelCurrentExecution()
+  else submit()
+}
+
+watch(
+  () => appState.isSending,
+  async (sending) => {
+    if (sending) return
+    await nextTick()
+    field.value?.focus()
+  }
+)
 </script>
 
 <template>
@@ -15,20 +45,25 @@ defineProps<{ running?: boolean }>()
 
       <div class="input-bar">
         <input
+          ref="field"
+          v-model="text"
           type="text"
           class="input-bar__field"
           placeholder="Ask anything..."
           autocomplete="off"
+          :disabled="appState.isSending"
+          @keydown.enter.prevent="onEnter"
         />
         <div class="input-bar__actions">
           <PermissionModeSelect />
           <button
             type="button"
             class="send-button"
-            :class="{ 'send-button--stop': running }"
-            :aria-label="running ? 'Stop' : 'Send'"
+            :class="{ 'send-button--stop': appState.isSending }"
+            :aria-label="appState.isSending ? 'Stop' : 'Send'"
+            @click="onSendClick"
           >
-            <AppIcon v-if="running" name="stop" :size="16" />
+            <AppIcon v-if="appState.isSending" name="stop" :size="16" />
             <AppIcon v-else name="arrow-up" :stroke-width="2" />
           </button>
         </div>

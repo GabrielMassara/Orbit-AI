@@ -1,4 +1,3 @@
-
 export type RuntimeName = 'claude' | 'codex' | 'opencode'
 
 export type SessionStatus =
