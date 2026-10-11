@@ -10,11 +10,19 @@ defineProps<{
   tag?: string
   menuOpen?: boolean
 }>()
+
+const emit = defineEmits<{
+  select: []
+  toggleMenu: []
+  rename: []
+  tag: []
+  delete: []
+}>()
 </script>
 
 <template>
   <div class="recent-item" :class="{ 'recent-item--active': active }">
-    <button type="button" class="recent-item__main">
+    <button type="button" class="recent-item__main" @click="emit('select')">
       <span v-if="forked" class="recent-item__fork" title="Ramificada de outra conversa">
         <AppIcon name="fork" :size="13" />
       </span>
@@ -23,15 +31,25 @@ defineProps<{
     </button>
 
     <div class="recent-item__more" :class="{ 'recent-item__more--open': menuOpen }">
-      <button type="button" class="recent-item__more-btn" aria-label="Mais opções">
+      <button
+        type="button"
+        class="recent-item__more-btn"
+        aria-label="Mais opções"
+        title="Mais opções"
+        @click.stop="emit('toggleMenu')"
+      >
         <AppIcon name="more" :size="16" />
       </button>
       <MenuPanel :open="menuOpen" :offset="4" style="right: 6px">
-        <MenuItem><AppIcon name="pencil" :size="15" /><span>Renomear</span></MenuItem>
-        <MenuItem>
+        <MenuItem @click="emit('rename')">
+          <AppIcon name="pencil" :size="15" /><span>Renomear</span>
+        </MenuItem>
+        <MenuItem @click="emit('tag')">
           <AppIcon name="tag" :size="15" /><span>{{ tag ? 'Editar tag' : 'Marcar tag' }}</span>
         </MenuItem>
-        <MenuItem danger><AppIcon name="trash" :size="15" /><span>Excluir</span></MenuItem>
+        <MenuItem danger @click="emit('delete')">
+          <AppIcon name="trash" :size="15" /><span>Excluir</span>
+        </MenuItem>
       </MenuPanel>
     </div>
   </div>

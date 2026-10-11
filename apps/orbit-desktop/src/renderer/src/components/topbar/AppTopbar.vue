@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { newChat } from '../../state/sessions'
+import { toggleSidebar } from '../../state/ui'
 import AppIcon from '../icons/AppIcon'
 import IconButton from '../ui/IconButton.vue'
 import ModelSelect from './ModelSelect.vue'
@@ -9,10 +11,10 @@ import ModelSelect from './ModelSelect.vue'
     <ModelSelect />
 
     <div class="topbar__actions">
-      <IconButton label="Toggle sidebar" class="topbar__sidebar-toggle">
+      <IconButton label="Toggle sidebar" class="topbar__sidebar-toggle" @click="toggleSidebar">
         <AppIcon name="sidebar" />
       </IconButton>
-      <IconButton label="New chat">
+      <IconButton label="New chat" @click="newChat">
         <AppIcon name="plus" :stroke-width="2" />
       </IconButton>
     </div>
