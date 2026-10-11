@@ -5,6 +5,7 @@ import ChatInput from './components/chat/ChatInput.vue'
 import ChatMessages from './components/chat/ChatMessages.vue'
 import AppSidebar from './components/sidebar/AppSidebar.vue'
 import AppTopbar from './components/topbar/AppTopbar.vue'
+import DialogHost from './components/ui/DialogHost.vue'
 import ToastStack from './components/ui/ToastStack.vue'
 
 onMounted(() => void init())
@@ -21,6 +22,7 @@ onMounted(() => void init())
     </div>
 
     <ToastStack />
+    <DialogHost />
   </div>
 </template>
 

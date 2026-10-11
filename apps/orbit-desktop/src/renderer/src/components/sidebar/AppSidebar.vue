@@ -1,22 +1,50 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import logo from '../../assets/logo.png'
 import {
   SIDEBAR_MAX_WIDTH,
   SIDEBAR_MIN_WIDTH,
   useSidebarWidth
 } from '../../composables/useSidebarWidth'
+import { appState } from '../../state/app-state'
+import {
+  handleDeleteSession,
+  handleRenameSession,
+  handleTagSession,
+  newChat,
+  recentSessions,
+  sessionLabel,
+  switchSession
+} from '../../state/sessions'
+import { sidebarOpen } from '../../state/ui'
 import AppIcon from '../icons/AppIcon'
 import RecentItem from './RecentItem.vue'
 
-defineProps<{ open?: boolean }>()
-
 const { width, resizing, onPointerDown, onKeydown, reset } = useSidebarWidth()
 
-const sessions = [
-  { id: '1', label: 'Conversa atual', active: true },
-  { id: '2', label: 'Conversa com tag', tag: 'exemplo' },
-  { id: '3', label: 'Conversa ramificada', forked: true }
-]
+const openMenuId = ref<string | null>(null)
+
+function toggleMenu(sessionId: string): void {
+  openMenuId.value = openMenuId.value === sessionId ? null : sessionId
+}
+
+function closeMenus(): void {
+  openMenuId.value = null
+}
+
+function onEscape(event: KeyboardEvent): void {
+  if (event.key === 'Escape') closeMenus()
+}
+
+onMounted(() => {
+  document.addEventListener('click', closeMenus)
+  document.addEventListener('keydown', onEscape)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', closeMenus)
+  document.removeEventListener('keydown', onEscape)
+})
 
 const user = { name: 'Usuário Teste', initials: 'UT' }
 </script>
@@ -24,7 +52,7 @@ const user = { name: 'Usuário Teste', initials: 'UT' }
 <template>
   <aside
     class="sidebar"
-    :class="{ 'sidebar--open': open, 'sidebar--resizing': resizing }"
+    :class="{ 'sidebar--open': sidebarOpen, 'sidebar--resizing': resizing }"
     :style="{ '--sidebar-width': `${width}px` }"
   >
     <div class="brand">
@@ -32,7 +60,7 @@ const user = { name: 'Usuário Teste', initials: 'UT' }
       <span class="brand__name">OrbitAI</span>
     </div>
 
-    <button type="button" class="new-conversation">
+    <button type="button" class="new-conversation" @click="newChat">
       <AppIcon name="plus" :size="18" :stroke-width="2" />
       New conversation
     </button>
@@ -40,13 +68,20 @@ const user = { name: 'Usuário Teste', initials: 'UT' }
     <div class="recent">
       <span class="recent__label">Recent</span>
       <div class="recent__list">
+        <p v-if="recentSessions.length === 0" class="recent__empty">Nenhuma conversa ainda.</p>
         <RecentItem
-          v-for="session in sessions"
+          v-for="session in recentSessions"
           :key="session.id"
-          :label="session.label"
-          :active="session.active"
-          :forked="session.forked"
+          :label="sessionLabel(session)"
+          :active="session.id === appState.session?.id"
+          :forked="!!session.forkedFrom"
           :tag="session.tag"
+          :menu-open="openMenuId === session.id"
+          @select="switchSession(session.id)"
+          @toggle-menu="toggleMenu(session.id)"
+          @rename="handleRenameSession(session.id, sessionLabel(session))"
+          @tag="handleTagSession(session.id, session.tag)"
+          @delete="handleDeleteSession(session.id)"
         />
       </div>
     </div>
@@ -165,6 +200,13 @@ const user = { name: 'Usuário Teste', initials: 'UT' }
   flex-direction: column;
   gap: 8px;
   overflow-y: auto;
+}
+
+.recent__empty {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-ghost);
 }
 
 .sidebar__footer {
