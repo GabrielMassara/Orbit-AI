@@ -67,6 +67,16 @@ export const icons = {
   ],
   'lock-open': [rect(5, 11, 14, 9, 2), path('M8 11V7a4 4 0 017.75-1.5')],
   'alert-circle': [circle(12, 12, 9), path('M12 8v5M12 16h.01')],
+  'thumbs-up': [
+    path(
+      'M7 22V11m0 11H4a1 1 0 01-1-1v-9a1 1 0 011-1h3m3 11h8.28a2 2 0 001.98-1.7l1.17-7A2 2 0 0018.45 11H14V6a2 2 0 00-2-2l-2 5.5V22'
+    )
+  ],
+  'thumbs-down': [
+    path(
+      'M17 2v11m0 11h3a1 1 0 001-1v-9a1 1 0 00-1-1h-3m-3-11H5.72a2 2 0 00-1.98 1.7l-1.17 7A2 2 0 004.55 13H9v5a2 2 0 002 2l2-5.5V2'
+    )
+  ],
   close: [path('M18 6L6 18M6 6l12 12')]
 } satisfies Record<string, Shape[]>
 

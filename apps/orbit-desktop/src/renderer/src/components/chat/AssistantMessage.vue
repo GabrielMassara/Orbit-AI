@@ -1,7 +1,13 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import logo from '../../assets/logo.png'
+import { renderMarkdownLite } from '../../utils/markdown'
+import CodeBlock from './CodeBlock.vue'
+import FeedbackRow from './FeedbackRow.vue'
 
-defineProps<{ text: string; streaming?: boolean }>()
+const props = defineProps<{ text: string; streaming?: boolean }>()
+
+const blocks = computed(() => (props.streaming ? [] : renderMarkdownLite(props.text)))
 </script>
 
 <template>
@@ -12,7 +18,15 @@ defineProps<{ text: string; streaming?: boolean }>()
     </div>
 
     <div class="ai-content">
-      <p>{{ text }}<span v-if="streaming" class="stream-cursor"></span></p>
+      <p v-if="streaming">{{ text }}<span class="stream-cursor"></span></p>
+      <template v-else>
+        <template v-for="(block, index) in blocks" :key="index">
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <p v-if="block.type === 'paragraph'" v-html="block.html"></p>
+          <CodeBlock v-else :lang="block.lang" :code="block.code" />
+        </template>
+        <FeedbackRow />
+      </template>
     </div>
   </div>
 </template>
@@ -62,6 +76,13 @@ defineProps<{ text: string; streaming?: boolean }>()
   color: var(--text);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.ai-content p :deep(code) {
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: var(--surface-hover);
+  font-size: 13px;
 }
 
 .stream-cursor {
