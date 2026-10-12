@@ -19,6 +19,7 @@ import {
 } from './chat'
 import { confirmDialog, promptDialog } from './dialogs'
 import { connectEvents, disconnectEvents } from './events'
+import { applyPermissionModeFromSession } from './permission-mode'
 import { saveState } from './persistence'
 import { showToast } from './toasts'
 import { closeSidebarOnMobile } from './ui'
@@ -45,6 +46,7 @@ export async function loadRecentSessions(): Promise<void> {
 export function activateSession(session: AgentSession): void {
   appState.session = session
   syncStateFromSession(session)
+  applyPermissionModeFromSession()
   saveState(session)
   setSendingState(session.status === 'running' || session.status === 'waiting_permission')
 }
