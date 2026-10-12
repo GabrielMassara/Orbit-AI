@@ -77,6 +77,7 @@ export const icons = {
       'M17 2v11m0 11h3a1 1 0 001-1v-9a1 1 0 00-1-1h-3m-3-11H5.72a2 2 0 00-1.98 1.7l-1.17 7A2 2 0 004.55 13H9v5a2 2 0 002 2l2-5.5V2'
     )
   ],
+  lock: [rect(5, 11, 14, 9, 2), path('M8 11V7a4 4 0 018 0v4')],
   close: [path('M18 6L6 18M6 6l12 12')]
 } satisfies Record<string, Shape[]>
 

@@ -1,60 +1,114 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { appState } from '../../state/app-state'
+import {
+  availablePermissionModes,
+  closeAllPermissionModeMenus,
+  CODEX_SANDBOX_MODE_LABELS,
+  CODEX_SANDBOX_MODES,
+  codexSandboxIcon,
+  handleCodexSandboxModeSelect,
+  handlePermissionModeSelect,
+  isCodexSession,
+  PERMISSION_MODE_LABELS,
+  permissionModeBusy,
+  permissionModeIcon,
+  permissionModeMenuOpen,
+  togglePermissionModeMenu
+} from '../../state/permission-mode'
 import AppIcon from '../icons/AppIcon'
-import type { IconName } from '../icons/icons'
 import MenuItem from '../ui/MenuItem.vue'
 import MenuPanel from '../ui/MenuPanel.vue'
 
-defineProps<{
-  menuOpen?: 'claude' | 'codex'
-}>()
+const root = ref<HTMLElement | null>(null)
 
-interface Option {
-  value: string
-  label: string
-  icon: IconName
+function onDocumentClick(event: MouseEvent): void {
+  if (!root.value?.contains(event.target as Node)) closeAllPermissionModeMenus()
 }
 
-const claudeModes: Option[] = [
-  { value: 'default', label: 'Padrão', icon: 'shield-check' },
-  { value: 'acceptEdits', label: 'Aceitar edições', icon: 'pencil' },
-  { value: 'bypassPermissions', label: 'Ignorar permissões', icon: 'bolt' },
-  { value: 'plan', label: 'Modo plano', icon: 'clipboard-list' },
-  { value: 'dontAsk', label: 'Não perguntar', icon: 'bell-off' },
-  { value: 'auto', label: 'Automático', icon: 'infinity' }
-]
+function onEscape(event: KeyboardEvent): void {
+  if (event.key === 'Escape') closeAllPermissionModeMenus()
+}
 
-const codexSandboxModes: Option[] = [
-  { value: 'read-only', label: 'Somente leitura', icon: 'eye' },
-  { value: 'workspace-write', label: 'Workspace', icon: 'folder-edit' },
-  { value: 'danger-full-access', label: 'Acesso total', icon: 'lock-open' }
-]
+onMounted(() => {
+  document.addEventListener('click', onDocumentClick)
+  document.addEventListener('keydown', onEscape)
+})
 
-const current = claudeModes[0]
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onDocumentClick)
+  document.removeEventListener('keydown', onEscape)
+})
 </script>
 
 <template>
-  <div class="permission-mode" :class="{ 'permission-mode--open': menuOpen }">
+  <div
+    ref="root"
+    class="permission-mode"
+    :class="{ 'permission-mode--open': permissionModeMenuOpen }"
+  >
     <button
       type="button"
       class="permission-mode__button"
-      aria-label="Permission mode"
-      title="Permission mode"
+      :aria-label="isCodexSession() ? 'Sandbox do Codex' : 'Permission mode'"
+      :title="isCodexSession() ? 'Sandbox do Codex' : 'Permission mode'"
+      aria-haspopup="menu"
+      :aria-expanded="permissionModeMenuOpen"
+      :disabled="!appState.session || permissionModeBusy"
+      @click="togglePermissionModeMenu"
     >
-      <AppIcon :name="current.icon" :size="15" />
-      <span>{{ current.label }}</span>
+      <template v-if="isCodexSession()">
+        <AppIcon :name="codexSandboxIcon(appState.currentCodexSandboxMode)" :size="15" />
+        <span>{{
+          CODEX_SANDBOX_MODE_LABELS[appState.currentCodexSandboxMode] ??
+          appState.currentCodexSandboxMode
+        }}</span>
+      </template>
+      <template v-else>
+        <AppIcon :name="permissionModeIcon(appState.currentPermissionMode)" :size="15" />
+        <span>{{
+          PERMISSION_MODE_LABELS[appState.currentPermissionMode] ?? appState.currentPermissionMode
+        }}</span>
+      </template>
     </button>
 
-    <MenuPanel :open="menuOpen === 'claude'" placement="top-end" :offset="10" :min-width="200">
+    <MenuPanel
+      v-if="!isCodexSession()"
+      :open="permissionModeMenuOpen"
+      placement="top-end"
+      :offset="10"
+      :min-width="200"
+    >
       <div class="permission-mode__title">Permission mode</div>
-      <MenuItem v-for="mode in claudeModes" :key="mode.value" :active="mode === current">
-        <AppIcon :name="mode.icon" :size="15" /><span>{{ mode.label }}</span>
+      <MenuItem
+        v-for="mode in availablePermissionModes()"
+        :key="mode"
+        :active="mode === appState.currentPermissionMode"
+        :disabled="permissionModeBusy"
+        @click="handlePermissionModeSelect(mode)"
+      >
+        <AppIcon :name="permissionModeIcon(mode)" :size="15" />
+        <span>{{ PERMISSION_MODE_LABELS[mode] }}</span>
       </MenuItem>
     </MenuPanel>
 
-    <MenuPanel :open="menuOpen === 'codex'" placement="top-end" :offset="10" :min-width="200">
+    <MenuPanel
+      v-else
+      :open="permissionModeMenuOpen"
+      placement="top-end"
+      :offset="10"
+      :min-width="200"
+    >
       <div class="permission-mode__title">Sandbox do Codex</div>
-      <MenuItem v-for="mode in codexSandboxModes" :key="mode.value">
-        <AppIcon :name="mode.icon" :size="15" /><span>{{ mode.label }}</span>
+      <MenuItem
+        v-for="mode in CODEX_SANDBOX_MODES"
+        :key="mode"
+        :active="mode === appState.currentCodexSandboxMode"
+        :disabled="permissionModeBusy"
+        @click="handleCodexSandboxModeSelect(mode)"
+      >
+        <AppIcon :name="codexSandboxIcon(mode)" :size="15" />
+        <span>{{ CODEX_SANDBOX_MODE_LABELS[mode] }}</span>
       </MenuItem>
     </MenuPanel>
   </div>
@@ -90,7 +144,12 @@ const current = claudeModes[0]
   flex-shrink: 0;
 }
 
-.permission-mode__button:hover,
+.permission-mode__button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.permission-mode__button:hover:not(:disabled),
 .permission-mode--open .permission-mode__button {
   background: var(--surface-hover);
   color: var(--text-muted);
