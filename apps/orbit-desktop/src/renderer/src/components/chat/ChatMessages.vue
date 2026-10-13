@@ -2,9 +2,13 @@
 import { ref, watch } from 'vue'
 import logo from '../../assets/logo.png'
 import { messages } from '../../state/chat'
+import { approvePermission, rejectPermission } from '../../state/permissions'
 import AssistantMessage from './AssistantMessage.vue'
+import PermissionRequest from './PermissionRequest.vue'
 import SystemMessage from './SystemMessage.vue'
 import ThinkingIndicator from './ThinkingIndicator.vue'
+import TodoListMessage from './TodoListMessage.vue'
+import ToolMessage from './ToolMessage.vue'
 import UserMessage from './UserMessage.vue'
 
 const container = ref<HTMLElement | null>(null)
@@ -35,6 +39,17 @@ watch(messages, scrollToBottom, { deep: true, flush: 'post' })
         v-else-if="message.kind === 'system'"
         :text="message.text"
         :error="message.error"
+      />
+      <ToolMessage v-else-if="message.kind === 'tool'" :tool="message.tool" :done="message.done" />
+      <TodoListMessage v-else-if="message.kind === 'todo'" :items="message.items" />
+      <PermissionRequest
+        v-else-if="message.kind === 'permission'"
+        :tool="message.tool"
+        :description="message.description"
+        :pending="message.pending"
+        :resolution="message.resolution"
+        @approve="approvePermission(message.permissionId)"
+        @reject="rejectPermission(message.permissionId)"
       />
       <ThinkingIndicator v-else />
     </template>

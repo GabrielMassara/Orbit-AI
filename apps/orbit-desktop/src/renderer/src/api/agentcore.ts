@@ -60,6 +60,22 @@ export function cancelSessionApi(sessionId: string) {
   })
 }
 
+export function resolvePermissionApi(
+  sessionId: string,
+  permissionId: string,
+  action: 'approve' | 'reject',
+  reason?: string
+) {
+  return request<Record<string, boolean>>(
+    `${sessionPath(sessionId)}/permissions/${encodeURIComponent(permissionId)}/${action}`,
+    {
+      method: 'POST',
+      ...(action === 'reject' ? { body: { reason } } : {}),
+      failureMessage: 'Erro ao responder permissão'
+    }
+  )
+}
+
 export async function openEventStream(sessionId: string): Promise<EventSource> {
   return new EventSource(await apiUrl(`${sessionPath(sessionId)}/events`))
 }
