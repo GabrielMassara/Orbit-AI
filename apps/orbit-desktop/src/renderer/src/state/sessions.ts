@@ -13,6 +13,8 @@ import type { AgentSession, RuntimeName } from '../api/types'
 import { appState, setSendingState, syncStateFromSession } from './app-state'
 import {
   appendSystemMessage,
+  appendToolCompleted,
+  appendToolStarted,
   appendUserMessage,
   clearMessages,
   finalizeAssistantMessage
@@ -71,6 +73,8 @@ export async function loadSessionHistory(sessionId: string): Promise<void> {
     if (event.type === 'user.message') appendUserMessage(event.text, event.messageId)
     else if (event.type === 'assistant.message')
       finalizeAssistantMessage(event.text, event.messageId)
+    else if (event.type === 'tool.started') appendToolStarted(event.tool)
+    else if (event.type === 'tool.completed') appendToolCompleted(event.tool)
   }
 }
 

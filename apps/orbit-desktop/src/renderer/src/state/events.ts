@@ -3,11 +3,16 @@ import type { AgentEvent } from '../api/types'
 import { setSendingState, setSessionStatus } from './app-state'
 import {
   appendDelta,
+  appendPermissionRequest,
   appendSystemMessage,
   appendThinkingIndicator,
+  appendToolCompleted,
+  appendToolStarted,
   endAssistantTurn,
   finalizeAssistantMessage,
-  removeThinkingIndicator
+  removeThinkingIndicator,
+  renderTodoList,
+  startNewTurn
 } from './chat'
 
 type EventOf<T extends AgentEvent['type']> = Extract<AgentEvent, { type: T }>
@@ -45,8 +50,12 @@ export async function connectEvents(sessionId: string): Promise<void> {
   on(source, 'agent.started', () => {
     setSessionStatus('running')
     setSendingState(true)
-    endAssistantTurn()
+    startNewTurn()
     appendThinkingIndicator()
+  })
+
+  on(source, 'agent.todo_list', (event) => {
+    renderTodoList(event.items)
   })
 
   on(source, 'assistant.delta', (event) => {
@@ -58,14 +67,19 @@ export async function connectEvents(sessionId: string): Promise<void> {
     appendThinkingIndicator()
   })
 
-  on(source, 'tool.completed', () => {
+  on(source, 'tool.started', (event) => {
+    appendToolStarted(event.tool)
+  })
+
+  on(source, 'tool.completed', (event) => {
+    appendToolCompleted(event.tool)
     appendThinkingIndicator()
   })
 
-  on(source, 'permission.requested', () => {
+  on(source, 'permission.requested', (event) => {
     setSessionStatus('waiting_permission')
     setSendingState(true)
-    endAssistantTurn()
+    appendPermissionRequest(event.permissionId, event.tool, event.description)
   })
 
   on(source, 'agent.completed', () => {

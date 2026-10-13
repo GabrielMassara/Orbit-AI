@@ -78,7 +78,11 @@ export const icons = {
     )
   ],
   lock: [rect(5, 11, 14, 9, 2), path('M8 11V7a4 4 0 018 0v4')],
-  close: [path('M18 6L6 18M6 6l12 12')]
+  close: [path('M18 6L6 18M6 6l12 12')],
+  'circle-check': [circle(12, 12, 9), path('M8 12.5l2.5 2.5L16 9.5')],
+  'circle-x': [circle(12, 12, 9), path('M9.5 9.5l5 5M14.5 9.5l-5 5')],
+  'list-bullets': [path('M9 6h11M9 12h11M9 18h11'), path('M4 6h.01M4 12h.01M4 18h.01')],
+  check: [path('M5 12.5l4.5 4.5L19 7')]
 } satisfies Record<string, Shape[]>
 
 export type IconName = keyof typeof icons
