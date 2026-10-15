@@ -31,4 +31,4 @@ O **Orbit AI** é um aplicativo desktop para gerenciar, em um só lugar, os agen
 
 Quem conversa com os agentes de IA é o **[AgentCore](https://gabrielmassara.com/projetos/AgentCore/)**, uma API HTTP local que expõe Claude Code, Codex e OpenCode por trás de um único contrato HTTP e SSE. O cliente cria sessões, envia mensagens e escuta eventos sempre da mesma forma, não importa qual agente está processando por baixo. O site e a documentação completa estão em [gabrielmassara.com/projetos/AgentCore](https://gabrielmassara.com/projetos/AgentCore/).
 
-No Orbit AI o AgentCore faz parte do próprio projeto (`apps/orbit-desktop/src/main/agentcore`) e não precisa ser instalado ou iniciado à parte:
+No Orbit AI o AgentCore faz parte do próprio projeto (`apps/orbit-desktop/src/main/agentcore`) e não precisa ser instalado ou iniciado à parte.
