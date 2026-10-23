@@ -23,7 +23,7 @@
 
 ---
 
-## O que é
+## O que é?
 
 O **Orbit AI** é um aplicativo desktop para gerenciar, em um só lugar, os agentes de IA de codificação que rodam na sua máquina, como Claude Code, Codex e OpenCode. Em vez de alternar entre ferramentas com interfaces e formatos de sessão diferentes, você conversa com todos eles pela mesma interface.
 
